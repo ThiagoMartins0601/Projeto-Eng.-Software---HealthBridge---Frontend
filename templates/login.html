@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HealthBridge IA</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background-color: #b2ebf2; 
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M28 20 h4 v20 h-4 z M20 28 h20 v4 h-20 z' fill='%23ffffff' fill-opacity='0.8'/%3E%3C/svg%3E");
+        }
+
+        .login-card { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0, 131, 143, 0.15); 
+            width: 100%; 
+            max-width: 380px; 
+            text-align: center; 
+            border-top: 6px solid #00acc1; 
+        }
+
+        h2 { color: #00838f; margin-bottom: 8px; font-size: 1.8em; } 
+        p.subtitle { color: #546e7a; font-size: 0.95em; margin-bottom: 24px; }
+
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            border: 1px solid #b2ebf2; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 1em; 
+            color: #263238;
+            background-color: #fafbfc;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #00acc1;
+            box-shadow: 0 0 5px rgba(0, 172, 193, 0.3);
+        }
+
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #00acc1; 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 1em; 
+            font-weight: 600; 
+            margin-top: 15px; 
+            transition: background 0.3s, transform 0.1s; 
+        }
+        
+        button:hover { background-color: #00838f; }
+        button:active { transform: scale(0.98); }
+        
+        .divider { margin: 24px 0; border-top: 1px solid #e0e0e0; position: relative; }
+        .divider span { 
+            position: absolute; 
+            top: -10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: white; 
+            padding: 0 10px; 
+            color: #78909c; 
+            font-size: 0.8em; 
+        }
+        
+        .signup-links { text-align: center; font-size: 0.95em; }
+        .signup-links a { 
+            color: #00acc1; 
+            text-decoration: none; 
+            font-weight: 500; 
+            display: block; 
+            margin: 12px 0; 
+            transition: color 0.2s;
+        }
+        .signup-links a:hover { color: #00838f; text-decoration: underline; }
+        
+        .inst-link { color: #43a047 !important; }
+        .inst-link:hover { color: #2e7d32 !important; text-decoration: underline; }
+
+        .alert { 
+            color: #c62828; 
+            background: #ffcdd2; 
+            padding: 10px; 
+            border-radius: 6px; 
+            margin-bottom: 15px; 
+            font-size: 0.85em; 
+            border: 1px solid #ef9a9a; 
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>HealthBridge IA</h2>
+        <p class="subtitle">Acesse sua conta para continuar</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert"><i class="fa-solid fa-circle-exclamation"></i> {{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="/login" method="POST">
+            <input type="text" name="identificador" placeholder="CPF ou CNPJ" required>
+            <input type="password" name="senha" placeholder="Sua senha" required>
+            <button type="submit">Entrar no Sistema</button>
+        </form>
+
+        <div class="divider"><span>NOVO POR AQUI?</span></div>
+
+        <div class="signup-links">
+            <a href="{{ url_for('cadastro_paciente') }}">Criar conta como Paciente</a>
+            <a href="{{ url_for('cadastro_instituicao') }}" class="inst-link">Sou uma Instituição Médica</a>
+        </div>
+    </div>
+</body>
+</html>
