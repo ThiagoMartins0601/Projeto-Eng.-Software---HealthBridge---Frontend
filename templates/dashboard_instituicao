@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthBridge IA - Painel da Instituição</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-bg: #171717;
+            --sidebar-hover: #2d2d2d;
+            --main-bg: #ffffff;
+            --accent-blue: #007bff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e5e5e5;
+        }
+
+        body { margin: 0; font-family: 'Inter', sans-serif; display: flex; height: 100vh; background-color: #f9f9f9; }
+
+        aside { width: 260px; background-color: var(--sidebar-bg); color: white; display: flex; flex-direction: column; padding: 15px; transition: width 0.3s; }
+        .new-chat { background-color: #28a745; border: 1px solid #1e7e34; color: #ffffff; padding: 12px; border-radius: 25px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; font-size: 0.9em; font-weight: 500; transition: background 0.2s; }
+        .new-chat:hover { background-color: #218838; }
+        
+        .chat-history { flex-grow: 1; overflow-y: auto; }
+        .history-item { padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; color: #ccc; display: flex; align-items: center; }
+        .history-item i { margin-right: 8px; color: #888; }
+        .history-item:hover { background-color: var(--sidebar-hover); color: white; }
+        
+        .sidebar-footer { border-top: 1px solid #333; padding-top: 15px; }
+
+        main { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        header { padding: 15px 30px; background: white; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .btn-logout { color: #dc3545; text-decoration: none; font-weight: 500; font-size: 0.9em; }
+
+        .action-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px 30px; background: white; border-bottom: 1px solid var(--border-color); }
+        .action-card { background: #fff; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .action-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--accent-blue); }
+        .action-card i { font-size: 24px; color: var(--accent-blue); margin-bottom: 10px; }
+        .action-card h4 { margin: 0; font-size: 1em; color: var(--text-main); }
+        .action-card p { margin: 5px 0 0; font-size: 0.8em; color: var(--text-muted); }
+
+        .dashboard-container { flex-grow: 1; padding: 30px; overflow-y: auto; background: #f9f9f9; }
+        .header-title { margin-top: 0; color: #1a1a1a; margin-bottom: 20px; }
+        
+        .table-container { background: white; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background-color: #f1f3f5; padding: 15px; font-weight: 600; font-size: 0.9em; color: #555; border-bottom: 2px solid var(--border-color); }
+        td { padding: 15px; border-bottom: 1px solid var(--border-color); font-size: 0.9em; color: #333; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #f8f9fa; }
+
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 600; }
+        .status-pendente { background-color: #fff3cd; color: #856404; }
+        
+        .btn-resumo { background: #e7f3ff; color: #007bff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85em; font-weight: 500; transition: background 0.2s; }
+        .btn-resumo:hover { background: #cce5ff; }
+
+        .btn-acao { background: none; border: none; cursor: pointer; font-size: 1.1em; margin-right: 10px; }
+        .btn-confirmar { color: #28a745; }
+        .btn-cancelar { color: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <aside>
+        <div class="new-chat" onclick="window.location.reload()">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>Atualizar Fila</span>
+        </div>
+
+        <div class="chat-history">
+            <p style="font-size: 0.75em; color: #888; margin-bottom: 10px; padding-left: 10px;">Agendamentos Recentes</p>
+            
+            {% if fila %}
+                {% for item in fila %}
+                <div class="history-item" onclick="alert('Consulta de {{ item.nome }} agendada para {{ item.data_agendada }}')">
+                    <i class="fa-regular fa-calendar"></i>
+                    {{ item.nome }}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="font-size: 0.8em; color: #555; padding-left: 10px; font-style: italic;">Fila vazia.</p>
+            {% endif %}
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="history-item"><i class="fa-solid fa-gear" style="margin-right: 8px;"></i> Configurações da Clínica</div>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="user-info">
+                <i class="fa-regular fa-hospital" style="font-size: 1.5em; color: #007bff;"></i>
+                <span style="font-size: 0.95em; font-weight: 500;">Painel de Controle: {{ session['user_nome'] }}</span>
+            </div>
+            <a href="/logout" class="btn-logout">Sair <i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+        </header>
+
+        <div class="action-container">
+            <div class="action-card">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <h4>Fila de Triagem</h4>
+                <p>Gerenciar agendamentos</p>
+            </div>
+            <div class="action-card" onclick="alert('Acesso ao banco de pacientes em desenvolvimento.')">
+                <i class="fa-solid fa-users"></i>
+                <h4>Pacientes</h4>
+                <p>Prontuários eletrônicos</p>
+            </div>
+            <div class="action-card" onclick="alert('Módulo financeiro e gerencial em desenvolvimento.')">
+                <i class="fa-solid fa-chart-line"></i>
+                <h4>Relatórios</h4>
+                <p>Métricas de atendimento</p>
+            </div>
+        </div>
+
+        <div class="dashboard-container">
+            <h2 class="header-title">Solicitações de Consulta e Triagens da IA</h2>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Idade</th>
+                            <th>Data Solicitada</th>
+                            <th>Resumo da IA</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if fila %}
+                            {% for item in fila %}
+                            <tr>
+                                <td><strong>{{ item.nome }}</strong></td>
+                                
+                                <td>
+                                    <span class="calc-idade" data-nascimento="{{ item.data_nascimento }}"></span>
+                                </td>
+                                <td>{{ item.data_agendada.replace('T', ' às ') }}</td>
+                                <td>
+                                    {% if item.resumo_ia %}
+                                        <button class="btn-resumo" onclick="lerResumo(`{{ item.resumo_ia }}`)">
+                                            <i class="fa-solid fa-robot"></i> Ler Triagem
+                                        </button>
+                                    {% else %}
+                                        <span style="color: #999; font-size: 0.8em;">Sem triagem prévia</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="status-badge status-pendente">{{ item.status }}</span></td>
+                                <td>
+                                    <button class="btn-acao btn-confirmar" title="Confirmar Agendamento" onclick="acaoFila('Confirmar', '{{ item.nome }}')"><i class="fa-solid fa-circle-check"></i></button>
+                                    <button class="btn-acao btn-cancelar" title="Cancelar Agendamento" onclick="acaoFila('Cancelar', '{{ item.nome }}')"><i class="fa-solid fa-circle-xmark"></i></button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px; color: #888;">
+                                    <i class="fa-solid fa-inbox" style="font-size: 2em; margin-bottom: 10px; display: block; color: #ddd;"></i>
+                                    Não há solicitações de agendamento no momento.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        
+        function calcularIdade(dataNascimento) {
+            const hoje = new Date();
+            const nascimento = new Date(dataNascimento);
+            let idade = hoje.getFullYear() - nascimento.getFullYear();
+            const m = hoje.getMonth() - nascimento.getMonth();
+            if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+                idade--;
+            }
+            return idade;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const elementosIdade = document.querySelectorAll('.calc-idade');
+            elementosIdade.forEach(el => {
+                const dataNasc = el.getAttribute('data-nascimento');
+                if(dataNasc) {
+                    const idade = calcularIdade(dataNasc);
+                    el.textContent = idade + " anos";
+                } else {
+                    el.textContent = "N/A";
+                }
+            });
+        });
+
+        function lerResumo(texto) {
+            alert("Resumo de Triagem (Gerado por IA):\n\n" + texto);
+        }
+
+        function acaoFila(acao, nomePaciente) {
+            if(confirm(`Deseja realmente ${acao.toLowerCase()} a consulta de ${nomePaciente}?`)) {
+                alert(`Ação "${acao}" registrada com sucesso! (Integração com back-end necessária para salvar alteração).`);
+            }
+        }
+    </script>
+</body>
+</html>
