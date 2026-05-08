@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Institucional - HealthBridge IA</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #eef2f5; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; max-width: 500px; text-align: center; max-height: 90vh; overflow-y: auto; border-top: 5px solid #0056b3; }
+        input[type="text"], input[type="password"], input[type="email"], select { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Arial, sans-serif; }
+        .row { display: flex; width: 90%; margin: 0 auto; gap: 10px; }
+        .row input, .row select { margin: 8px 0; width: 100%; }
+        button { width: 90%; padding: 12px; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; font-size: 1em; font-weight: bold; }
+        button:hover { background-color: #004494; }
+        .mensagens { color: red; margin-bottom: 10px; font-size: 0.9em; }
+        h2 { color: #333; margin-bottom: 5px; }
+        p.subtitle { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cadastro de Instituição</h2>
+        <p class="subtitle">Cadastre sua clínica ou hospital no MedTriage IA</p>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="mensagens">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+
+            <form action="{{ url_for('cadastro_instituicao') }}" method="POST">   
+            <input type="text" name="cnpj" placeholder="CNPJ" required oninput="mascaraCNPJ(this)" maxlength="18">
+            <input type="text" name="razao_social" placeholder="Razão Social" required>
+            <input type="text" name="nome_fantasia" placeholder="Nome Fantasia" required>
+            <label class="label-left">Data de Fundação:</label>
+            <input type="date" name="data_fundacao">
+            
+            <select name="tipo_instituicao" required style="width: 90%;">
+                <option value="">Selecione o Tipo de Instituição</option>
+                <option value="Clinica Geral">Clínica Geral</option>
+                <option value="Hospital">Hospital</option>
+                <option value="Laboratorio">Laboratório de Exames</option>
+                <option value="Consultorio Especializado">Consultório Especializado</option>
+            </select>
+
+            <div class="row">
+                <input type="text" name="telefone" placeholder="Telefone" required oninput="mascaraTelefone(this)" maxlength="15">
+                <input type="email" name="email" placeholder="E-mail Comercial" required>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 5%;">
+
+            <input type="text" name="cep" id="cep" placeholder="CEP do estabelecimento" required oninput="mascaraCEP(this)" maxlength="9">
+            <input type="text" name="rua" id="rua" placeholder="Rua/Avenida" required>
+            
+            <div class="row">
+                <input type="text" name="numero" placeholder="Número" style="flex: 1;" required>
+                <input type="text" name="complemento" placeholder="Complemento" style="flex: 2;">
+            </div>
+            
+            <input type="text" name="bairro" id="bairro" placeholder="Bairro" required>
+            
+            <div class="row">
+                <select name="uf" id="uf" style="flex: 1;" required>
+                    <option value="">UF</option>
+                </select>
+                <select name="cidade" id="cidade" style="flex: 2;" required disabled>
+                    <option value="">Selecione o Estado primeiro</option>
+                </select>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 5%;">
+            
+            <input type="password" name="senha" placeholder="Crie uma Senha de Acesso" required>
+            
+            <button type="submit">Finalizar Cadastro Institucional</button>
+</form>
+<p><a href="{{ url_for('index') }}" style="color: #0056b3; text-decoration: none;">
+    Voltar ao Login Geral
+</a></p>
+
+    <script>
+        function mascaraCNPJ(i){
+            let v = i.value.replace(/\D/g,"");
+            v = v.replace(/^(\d{2})(\d)/,"$1.$2");
+            v = v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
+            v = v.replace(/\.(\d{3})(\d)/,".$1/$2");
+            v = v.replace(/(\d{4})(\d)/,"$1-$2");
+            i.value = v;
+        }
+
+        function mascaraTelefone(i){
+            let v = i.value.replace(/\D/g,"");
+            v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+            v = v.replace(/(\d)(\d{4})$/,"$1-$2");
+            i.value = v;
+        }
+
+        function mascaraCEP(i){
+           let v = i.value.replace(/\D/g,"");
+           v = v.replace(/^(\d{5})(\d)/,"$1-$2"); 
+           i.value = v;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const ufSelect = document.getElementById("uf");
+            const cidadeSelect = document.getElementById("cidade");
+            const cepInput = document.getElementById("cep");
+            const ruaInput = document.getElementById("rua");
+            const bairroInput = document.getElementById("bairro");
+
+            function carregarUFs() {
+                return fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
+                    .then(r => r.json())
+                    .then(estados => {
+                        estados.forEach(est => {
+                            const opt = document.createElement("option");
+                            opt.value = est.sigla; opt.dataset.id = est.id; opt.textContent = est.sigla; 
+                            ufSelect.appendChild(opt);
+                        });
+                    });
+            }
+
+            function carregarCidades(ufId) {
+                return fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufId}/municipios?orderBy=nome`)
+                    .then(r => r.json())
+                    .then(cidades => {
+                        cidadeSelect.innerHTML = '<option value="">Selecione a Cidade</option>';
+                        cidades.forEach(cid => {
+                            const opt = document.createElement("option");
+                            opt.value = cid.nome; opt.textContent = cid.nome;
+                            cidadeSelect.appendChild(opt);
+                        });
+                        cidadeSelect.disabled = false;
+                    });
+            }
+
+            carregarUFs();
+
+            ufSelect.addEventListener("change", function() {
+                const opt = ufSelect.options[ufSelect.selectedIndex];
+                const ufId = opt ? opt.dataset.id : null;
+                cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                cidadeSelect.disabled = true;
+                if (ufId) carregarCidades(ufId);
+                else cidadeSelect.innerHTML = '<option value="">Selecione o Estado primeiro</option>';
+            });
+
+            cepInput.addEventListener('blur', function() {
+                let cep = this.value.replace(/\D/g, '');
+                if(cep.length === 8) {
+                    ruaInput.value = "Carregando..."; bairroInput.value = "Carregando...";
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            ruaInput.value = data.logradouro; bairroInput.value = data.bairro;
+                            ufSelect.value = data.uf;
+                            const opt = ufSelect.options[ufSelect.selectedIndex];
+                            const ufId = opt ? opt.dataset.id : null;
+                            if (ufId) {
+                                carregarCidades(ufId).then(() => { cidadeSelect.value = data.localidade; });
+                            }
+                        } else {
+                            ruaInput.value = ""; bairroInput.value = ""; alert("CEP não encontrado.");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+<p><a href="{{ url_for('index') }}" style="color: #666; text-decoration: none; font-size: 0.9em;">
+    <i class="fa-solid fa-arrow-left"></i> Já tenho conta? Voltar ao login
+</a></p>
