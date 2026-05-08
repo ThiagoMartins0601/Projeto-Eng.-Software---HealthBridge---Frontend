@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - HealthBridge IA</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f4f7f6; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; max-height: 90vh; overflow-y: auto; }
+        input[type="text"], input[type="password"], input[type="number"], input[type="file"], select { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Arial, sans-serif; }
+        .row { display: flex; width: 90%; margin: 0 auto; gap: 10px; }
+        .row input, .row select { margin: 8px 0; width: 100%; }
+        .radio-group { text-align: left; margin: 10px 5%; font-size: 0.9em; color: #555; }
+        button { width: 90%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 15px; font-size: 1em; }
+        button:hover { background-color: #218838; }
+        .mensagens { color: red; margin-bottom: 10px; font-size: 0.9em; }
+        .label-left { text-align: left; display: block; margin: 10px 5% 0; font-size: 0.85em; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Criar Conta</h2>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="mensagens">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('cadastro_paciente') }}" method="POST">
+            <input type="text" name="nome" placeholder="Nome Completo" required>
+            <input type="text" name="cpf" placeholder="Digite seu CPF" required oninput="mascaraCPF(this)">
+            <label class="label-left">Data de Nascimento:</label>
+            <input type="date" name="data_nascimento" required>
+            
+            <input type="text" name="cep" id="cep" placeholder="CEP" required oninput="mascaraCEP(this)" maxlength="9">
+            <input type="text" name="rua" id="rua" placeholder="Rua/Avenida" required>
+            
+            <div class="row">
+                <input type="text" name="numero" placeholder="Número" style="flex: 1;" required>
+                <input type="text" name="complemento" placeholder="Complemento (Opcional)" style="flex: 2;">
+            </div>
+            
+            <input type="text" name="bairro" id="bairro" placeholder="Bairro" required>
+            
+            <div class="row">
+                <select name="uf" id="uf" style="flex: 1;" required>
+                    <option value="">UF</option>
+                </select>
+                <select name="cidade" id="cidade" style="flex: 2;" required disabled>
+                    <option value="">Selecione o Estado primeiro</option>
+                </select>
+            </div>
+            
+            <span class="label-left">Comprovante de Residência (Indisponível):</span>
+            <input type="file" name="comprovante" disabled style="background-color: #eee; cursor: not-allowed;" title="Envio de arquivo desabilitado">
+
+            <div class="radio-group">
+                <label>Possui convênio médico?</label><br>
+                <input type="radio" id="conv_sim" name="possui_convenio" value="sim" onchange="toggleConvenio()"> <label for="conv_sim">Sim</label>
+                <input type="radio" id="conv_nao" name="possui_convenio" value="nao" checked onchange="toggleConvenio()"> <label for="conv_nao">Não</label>
+            </div>
+            
+            <input type="text" id="nome_convenio" name="nome_convenio" placeholder="Qual o nome do seu convênio?" style="display: none;">
+
+            <input type="text" name="alergias" placeholder="Possui alergias? (Deixe em branco se não)">
+            <input type="text" name="problema_cronico" placeholder="Problema crônico? (Deixe em branco se não)">
+            
+            <input type="password" name="senha" placeholder="Crie uma Senha" required>
+            
+           <button type="submit">Finalizar Cadastro</button>
+</form>
+        <p><a href="{{ url_for('index') }}" style="color: #007bff; text-decoration: none;">
+    Já possui conta? Voltar ao Login
+</a></p>
+
+    <script>
+        function mascaraCPF(i){
+           var v = i.value;
+           if(isNaN(v[v.length-1])){ i.value = v.substring(0, v.length-1); return; }
+           i.setAttribute("maxlength", "14");
+           if (v.length == 3 || v.length == 7) i.value += ".";
+           if (v.length == 11) i.value += "-";
+        }
+
+        function mascaraCEP(i){
+           var v = i.value.replace(/\D/g,""); 
+           v = v.replace(/^(\d{5})(\d)/,"$1-$2"); 
+           i.value = v;
+        }
+
+        function toggleConvenio() {
+            var convSim = document.getElementById("conv_sim").checked;
+            var inputNomeConvenio = document.getElementById("nome_convenio");
+            if (convSim) {
+                inputNomeConvenio.style.display = "inline-block";
+                inputNomeConvenio.required = true;
+            } else {
+                inputNomeConvenio.style.display = "none";
+                inputNomeConvenio.required = false;
+                inputNomeConvenio.value = "";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const ufSelect = document.getElementById("uf");
+            const cidadeSelect = document.getElementById("cidade");
+            const cepInput = document.getElementById("cep");
+            const ruaInput = document.getElementById("rua");
+            const bairroInput = document.getElementById("bairro");
+
+            function carregarUFs() {
+                return fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
+                    .then(response => response.json())
+                    .then(estados => {
+                        estados.forEach(estado => {
+                            const option = document.createElement("option");
+                            option.value = estado.sigla;
+                            option.dataset.id = estado.id;
+                            option.textContent = estado.sigla; 
+                            ufSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error("Erro ao carregar UFs:", error));
+            }
+
+            function carregarCidades(ufId) {
+                return fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufId}/municipios?orderBy=nome`)
+                    .then(response => response.json())
+                    .then(cidades => {
+                        cidadeSelect.innerHTML = '<option value="">Selecione a Cidade</option>';
+                        cidades.forEach(cidade => {
+                            const option = document.createElement("option");
+                            option.value = cidade.nome;
+                            option.textContent = cidade.nome;
+                            cidadeSelect.appendChild(option);
+                        });
+                        cidadeSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error("Erro ao carregar Cidades:", error);
+                        cidadeSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+                    });
+            }
+
+            carregarUFs();
+
+            ufSelect.addEventListener("change", function() {
+                const selectedOption = ufSelect.options[ufSelect.selectedIndex];
+                const ufId = selectedOption ? selectedOption.dataset.id : null;
+                
+                cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                cidadeSelect.disabled = true;
+
+                if (ufId) {
+                    carregarCidades(ufId);
+                } else {
+                    cidadeSelect.innerHTML = '<option value="">Selecione o Estado primeiro</option>';
+                }
+            });
+
+            cepInput.addEventListener('blur', function() {
+                let cep = this.value.replace(/\D/g, ''); 
+                if(cep.length === 8) {
+                    ruaInput.value = "Carregando...";
+                    bairroInput.value = "Carregando...";
+                    
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            ruaInput.value = data.logradouro;
+                            bairroInput.value = data.bairro; 
+                            
+                            ufSelect.value = data.uf;
+                            
+                            const selectedOption = ufSelect.options[ufSelect.selectedIndex];
+                            const ufId = selectedOption ? selectedOption.dataset.id : null;
+                            
+                            if (ufId) {
+                                carregarCidades(ufId).then(() => {
+                                    cidadeSelect.value = data.localidade;
+                                });
+                            }
+                        } else {
+                            ruaInput.value = "";
+                            bairroInput.value = "";
+                            alert("CEP não encontrado.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Erro ao buscar CEP:", error);
+                        ruaInput.value = "";
+                        bairroInput.value = "";
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+<p><a href="{{ url_for('index') }}" style="color: #666; text-decoration: none; font-size: 0.9em;">
+    <i class="fa-solid fa-arrow-left"></i> Já tenho conta? Voltar ao login
+</a></p>
